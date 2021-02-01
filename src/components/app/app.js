@@ -19,32 +19,38 @@ export default class App extends Component {
       data: [
         {
           label: "Going to swim",
-          important: true,
+          important: false,
+          like: true,
           id: 1
         },
         {
           label: "Going to dream",
-          important: false,
+          important: true,
+          like: false,
           id: 2
         },
         {
           label: "Going to keep",
           important: false,
+          like: false,
           id: 3
         }
       ],
-      maxId: 3
+      maxId: 3,
+      term: '',
+      filter: 'all'
     };
     this.deleteItem = this.deleteItem.bind(this);
     this.addItem = this.addItem.bind(this);
-
+    this.onToggleImportant = this.onToggleImportant.bind(this);
+    this.onToggleLiked = this.onToggleLiked.bind(this);
+    this.onUpdateSearch = this.onUpdateSearch.bind(this);
+    this.onFilterSelect = this.onFilterSelect.bind(this);
   }
 
   deleteItem(id) {
     this.setState(({data}) => {
       const index = data.findIndex(elem => elem.id === id);
-      const indexes = data.map(elem => elem.id);
-      console.log(indexes);
 
       const before = data.slice(0, index);
       const after = data.slice(index + 1);
@@ -71,17 +77,79 @@ export default class App extends Component {
     });
   }
 
+  toggleParameter(data, id, param) {
+      const index = data.findIndex(elem => elem.id === id);
+      const old = data[index];
+      const newElem = {...old, [param]: !old[param]};
+      const newArr = [...data.slice(0, index), newElem, ...data.slice(index + 1)];
+
+      return newArr;
+  }
+
+  onToggleImportant(id) {
+    this.setState( ({data} ) => {
+      return {
+        data: this.toggleParameter(data, id, 'important')
+      }
+    });
+  }
+
+  onToggleLiked(id) {
+    this.setState( ({data} ) => {
+      return {
+        data: this.toggleParameter(data, id, 'like')
+      }
+    });
+  }
+
+  searchPosts(arr, term) {
+    if(term.length === 0) return arr;
+
+    return arr.filter( (item) => {
+      return item.label.indexOf(term) > -1; 
+    });
+  }
+
+  onUpdateSearch(term) {
+    this.setState({ term });
+  }
+
+  filterPosts(arr, filter) {
+    if(filter === 'like') {
+      return arr.filter(item => item.like)
+    } else {
+      return arr;
+    }
+  }
+
+  onFilterSelect(filter) {
+    this.setState({ filter  });
+  }
+
   render() {
+    const {data, term, filter} = this.state;
+    const liked = data.filter(item => item.like).length;
+    const allPosts = data.length;
+
+    const visiblePosts = this.filterPosts(this.searchPosts(data, term), filter) 
+
     return (
       <AppBlock className="app">
-        <AppHeader/>
+        <AppHeader 
+          liked={liked}
+          allPosts={allPosts}/>
         <div className="search-panel d-flex">
-          <SearchPanel/>
-          <PostStatusFilter/>
+          <SearchPanel
+            onUpdateSearch={this.onUpdateSearch}/>
+          <PostStatusFilter 
+            filter={filter}
+            onFilterSelect={this.onFilterSelect}/>
         </div>
         <PostList 
-          posts={this.state.data}
-          onDelete={this.deleteItem} />
+          posts={visiblePosts}
+          onDelete={this.deleteItem} 
+          onToggleImportant={this.onToggleImportant}
+          onToggleLiked={this.onToggleLiked}/>
         <PostAddForm
           onAdd={this.addItem}/>
       </AppBlock>

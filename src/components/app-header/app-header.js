@@ -1,6 +1,5 @@
-import React from 'react';
+import React, {Component} from 'react';
 import styled from "styled-components";
-
 
 const Header = styled.div`
   display: flex;
@@ -17,13 +16,15 @@ const Header = styled.div`
     color: grey;
   }
 `;
-const AppHeader = () => {
-  return (
-    <Header className="app-header">
-      <h1>Max Novikov</h1>
-      <h2>5 записей, из них понравилось 0</h2>
-    </Header>
-  )
-}
 
-export default AppHeader;
+export default class AppHeader extends Component {
+  render () {
+    const {liked, allPosts} = this.props;
+    return (
+      <Header className="app-header">
+        <h1>Max Novikov</h1>
+        <h2>{allPosts} записей, из них понравилось {liked}</h2>
+      </Header>
+    )
+  }
+}
